@@ -1,97 +1,226 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Generator Otomatis (Sheet)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Undangan - Invito Tools</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; }
-        button { padding: 10px 20px; background: #25D366; color: white; border: none; cursor: pointer; border-radius: 5px; }
-        button:hover { background: #128C7E; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .link-box { font-family: monospace; color: #007bff; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 20px; 
+            margin: 0;
+        }
+        
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 { 
+            text-align: center; 
+            color: #2c3e50; 
+            margin-bottom: 30px;
+            border-bottom: 2px solid #c5a059;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 500; margin-bottom: 8px; color: #555; }
+        
+        input { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box; /* Penting */
+        }
+        input:focus { 
+            outline: none; 
+            border-color: #c5a059; 
+            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+        }
+
+        .actions { text-align: center; margin-bottom: 30px; }
+        
+        .btn-fetch { 
+            padding: 12px 30px; 
+            background: #2c3e50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-fetch:hover { background: #34495e; transform: translateY(-2px); }
+
+        /* Tabel Modern */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            font-size: 14px;
+            overflow-x: auto;
+            display: block; /* Agar bisa scroll di HP */
+        }
+        thead { background-color: #2c3e50; color: white; }
+        th, td { 
+            padding: 12px 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd;
+        }
+        /* Zebra Striping */
+        tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        tbody tr:hover { background-color: #eef2f3; }
+
+        .link-box { 
+            font-family: monospace; 
+            color: #007bff; 
+            font-size: 12px; 
+            display: block; 
+            word-break: break-all;
+        }
+        
+        .btn-wa {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-wa:hover { background-color: #128C7E; color: white; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            th, td { padding: 8px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Generator Link Otomatis</h2>
+        <h2><i class="fas fa-link"></i> Generator Link Undangan</h2>
         
-        <!-- 1. Input Base URL -->
-        <label>Base URL Undangan:</label>
-        <input type="text" id="baseUrl" placeholder="https://websiteanda.com/undangan/andi-siti/index.html">
+        <div class="form-group">
+            <label>Base URL Undangan (Link Website Pasangan):</label>
+            <input type="text" id="baseUrl" placeholder="https://websiteanda.com/undangan/andi-siti/index.html">
+        </div>
         
-        <!-- 2. Input URL Script -->
-        <label>URL Apps Script:</label>
-        <input type="text" id="scriptUrl" placeholder="https://script.google.com/.../exec">
+        <div class="form-group">
+            <label>URL Apps Script (Dari Google Sheet):</label>
+            <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+
+        <div class="actions">
+            <button onclick="fetchData()" class="btn-fetch">
+                <i class="fas fa-database"></i> Ambil Data & Generate Link
+            </button>
+        </div>
         
-        <button onclick="fetchData()">Ambil Data dari Sheet</button>
-        
-        <!-- 3. Hasil Tabel -->
+        <!-- Area Hasil -->
         <div id="resultArea"></div>
     </div>
 
     <script>
-    function fetchData() {
-        const scriptUrl = document.getElementById('scriptUrl').value;
-        const baseUrl = document.getElementById('baseUrl').value;
-        const resultArea = document.getElementById('resultArea');
+        function fetchData() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+            const resultArea = document.getElementById('resultArea');
 
-        if(!scriptUrl) { alert("Isi URL Script dulu!"); return; }
+            if(!scriptUrl) { alert("Mohon isi URL Apps Script dulu!"); return; }
+            if(!baseUrl) { alert("Mohon isi Base URL dulu!"); return; }
 
-        resultArea.innerHTML = "<p>Memuat data...</p>";
+            resultArea.innerHTML = "<p style='text-align:center; color:#888;'><i class='fas fa-spinner fa-spin'></i> Memuat data dari Google Sheet...</p>";
 
-        // --- TRIK JSONP: Membuat tag script secara dinamis ---
-        // Kita tambahkan ?callback=terimaData di belakang URL
-        const finalUrl = scriptUrl + "?callback=terimaData";
-        
-        const scriptElement = document.createElement('script');
-        scriptElement.src = finalUrl;
-        scriptElement.id = "jsonp-script";
-        
-        // Jika script lama ada, hapus dulu
-        const oldScript = document.getElementById('jsonp-script');
-        if(oldScript) oldScript.remove();
+            // --- JSONP LOGIC ---
+            const finalUrl = scriptUrl + "?callback=terimaData";
+            
+            const scriptElement = document.createElement('script');
+            scriptElement.src = finalUrl;
+            scriptElement.id = "jsonp-script";
+            
+            const oldScript = document.getElementById('jsonp-script');
+            if(oldScript) oldScript.remove();
 
-        // Masukkan script ke body (Browser akan menjalankan link Google Script)
-        document.body.appendChild(scriptElement);
-    }
-
-    // --- FUNGSI PENERIMA DATA (Dipanggil otomatis oleh Google Script) ---
-    function terimaData(data) {
-        const baseUrl = document.getElementById('baseUrl').value;
-        const resultArea = document.getElementById('resultArea');
-        
-        // Bersihkan data jika null
-        const cleanData = data.filter(item => item.name && item.name !== "");
-
-        if (!cleanData || cleanData.length === 0) {
-            resultArea.innerHTML = "<p style='color:red'>Data kosong atau format salah.</p>";
-            return;
+            document.body.appendChild(scriptElement);
         }
 
-        let html = `<table>
-            <tr>
-                <th>No</th>
-                <th>Nama Tamu</th>
-                <th>Link Undangan</th>
-            </tr>`;
+        function terimaData(data) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const resultArea = document.getElementById('resultArea');
+            
+            // Bersihkan data
+            const cleanData = data.filter(item => item.name && item.name !== "");
 
-        cleanData.forEach((item, index) => {
-            const link = `${baseUrl}?to=${encodeURIComponent(item.name)}`;
-            html += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td><a href="${link}" target="_blank" class="link-box">${link}</a></td>
-                </tr>
-            `;
-        });
+            if (!cleanData || cleanData.length === 0) {
+                resultArea.innerHTML = "<div style='padding:20px; background:#ffebee; color:#c62828; border-radius:8px; text-align:center;'>Data kosong. Pastikan Kolom A (Nama) dan B (No WA) terisi di Google Sheet.</div>";
+                return;
+            }
 
-        html += "</table>";
-        resultArea.innerHTML = html;
-    }
-</script>
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th width="5%">No</th>
+                        <th width="35%">Nama Tamu</th>
+                        <th width="20%">No WA</th>
+                        <th width="25%">Link Undangan</th>
+                        <th width="15%">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            cleanData.forEach((item, index) => {
+                const link = `${baseUrl}?to=${encodeURIComponent(item.name)}`;
+                
+                // --- LOGIKA WHATSAPP ---
+                let waButton = "-";
+                if(item.wa) {
+                    // Format nomor WA (Ganti 08 jadi 62)
+                    let formattedWA = item.wa.toString();
+                    if(formattedWA.startsWith('0')) {
+                        formattedWA = '62' + formattedWA.substring(1);
+                    }
+
+                    // Pesan Template
+                    const pesan = `Halo ${item.name}, kami mengundang Anda ke acara pernikahan kami. Silakan buka undangannya di sini: ${link}`;
+                    const waLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(pesan)}`;
+                    
+                    waButton = `<a href="${waLink}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> Kirim</a>`;
+                }
+
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><b>${item.name}</b></td>
+                        <td style="color:#777;">${item.wa || '-'}</td>
+                        <td><span class="link-box">${link}</span></td>
+                        <td>${waButton}</td>
+                    </tr>
+                `;
+            });
+
+            html += "</tbody></table>";
+            resultArea.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
