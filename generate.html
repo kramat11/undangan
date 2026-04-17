@@ -33,45 +33,65 @@
     </div>
 
     <script>
-        function fetchData() {
-            const scriptUrl = document.getElementById('scriptUrl').value;
-            const baseUrl = document.getElementById('baseUrl').value;
-            const resultArea = document.getElementById('resultArea');
+    function fetchData() {
+        const scriptUrl = document.getElementById('scriptUrl').value;
+        const baseUrl = document.getElementById('baseUrl').value;
+        const resultArea = document.getElementById('resultArea');
 
-            if(!scriptUrl) { alert("Isi URL Script dulu!"); return; }
+        if(!scriptUrl) { alert("Isi URL Script dulu!"); return; }
 
-            resultArea.innerHTML = "<p>Memuat data...</p>";
+        resultArea.innerHTML = "<p>Memuat data...</p>";
 
-            // Ambil data dari Google Script
-            fetch(scriptUrl)
-            .then(response => response.json())
-            .then(data => {
-                let html = `<table>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Tamu</th>
-                        <th>Link Undangan</th>
-                    </tr>`;
+        // --- TRIK JSONP: Membuat tag script secara dinamis ---
+        // Kita tambahkan ?callback=terimaData di belakang URL
+        const finalUrl = scriptUrl + "?callback=terimaData";
+        
+        const scriptElement = document.createElement('script');
+        scriptElement.src = finalUrl;
+        scriptElement.id = "jsonp-script";
+        
+        // Jika script lama ada, hapus dulu
+        const oldScript = document.getElementById('jsonp-script');
+        if(oldScript) oldScript.remove();
 
-                data.forEach((item, index) => {
-                    const link = `${baseUrl}?to=${encodeURIComponent(item.name)}`;
-                    html += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.name}</td>
-                            <td><a href="${link}" target="_blank" class="link-box">${link}</a></td>
-                        </tr>
-                    `;
-                });
+        // Masukkan script ke body (Browser akan menjalankan link Google Script)
+        document.body.appendChild(scriptElement);
+    }
 
-                html += "</table>";
-                resultArea.innerHTML = html;
-            })
-            .catch(error => {
-                resultArea.innerHTML = "<p style='color:red'>Gagal mengambil data. Pastikan Access Script diatur ke 'Anyone'.</p>";
-                console.error(error);
-            });
+    // --- FUNGSI PENERIMA DATA (Dipanggil otomatis oleh Google Script) ---
+    function terimaData(data) {
+        const baseUrl = document.getElementById('baseUrl').value;
+        const resultArea = document.getElementById('resultArea');
+        
+        // Bersihkan data jika null
+        const cleanData = data.filter(item => item.name && item.name !== "");
+
+        if (!cleanData || cleanData.length === 0) {
+            resultArea.innerHTML = "<p style='color:red'>Data kosong atau format salah.</p>";
+            return;
         }
-    </script>
+
+        let html = `<table>
+            <tr>
+                <th>No</th>
+                <th>Nama Tamu</th>
+                <th>Link Undangan</th>
+            </tr>`;
+
+        cleanData.forEach((item, index) => {
+            const link = `${baseUrl}?to=${encodeURIComponent(item.name)}`;
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td><a href="${link}" target="_blank" class="link-box">${link}</a></td>
+                </tr>
+            `;
+        });
+
+        html += "</table>";
+        resultArea.innerHTML = html;
+    }
+</script>
 </body>
 </html>
