@@ -369,7 +369,7 @@
 
         // --- 5. Hapus SATU Tamu ---
         function deleteSingleGuest(index) {
-            if(!confirm("Hapus tamu ini dari daftar kerjaan? (Data di Google Sheet tetap aman)")) return;
+            if(!confirm("Hapus tamu ini dari daftar undangan? (Data di Google Sheet tetap aman)")) return;
 
             // Ambil data saat ini dari storage
             const stored = localStorage.getItem(STORAGE_KEY);
@@ -420,7 +420,7 @@
 
         // --- 7. Reset SEMUA Data ---
         function resetAllData() {
-            if(confirm("PERINGATAN: Ini akan menghapus SEMUA data (Link Base, Script, dan List Tamu). Lanjutkan?")) {
+            if(confirm("Lanjutkan?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 document.getElementById('resultArea').innerHTML = "";
                 document.getElementById('baseUrl').value = "";
