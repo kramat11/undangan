@@ -65,7 +65,6 @@
             box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
         }
 
-        /* Container untuk tombol aksi utama */
         .action-container {
             display: flex;
             gap: 10px;
@@ -103,7 +102,6 @@
             color: var(--white); 
         }
 
-        /* Tabel Modern */
         .table-responsive {
             overflow-x: auto;
             border-radius: 8px;
@@ -134,7 +132,6 @@
             text-overflow: ellipsis;
         }
         
-        /* Tombol di dalam Tabel */
         .action-buttons {
             display: flex;
             gap: 5px;
@@ -162,7 +159,7 @@
             align-items: center;
             justify-content: center;
             width: 30px;
-            height: 30px; /* Supaya bulat/siku sama rata */
+            height: 30px; 
             padding: 0;
             background-color: #fff0f0;
             color: var(--danger);
@@ -196,7 +193,7 @@
             align-items: center;
             gap: 10px;
             animation: slideIn 0.3s ease-out forwards;
-            min-width: 250px;
+            min-width: 280px;
         }
         .toast.error { background: #e74c3c; }
         .toast.success { background: #27ae60; }
@@ -207,7 +204,6 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             .container { padding: 15px; }
             .action-container { flex-direction: column; }
@@ -235,9 +231,8 @@
 
         <div class="action-container">
             <button onclick="fetchData()" class="btn btn-fetch">
-                <i class="fas fa-database"></i> Ambil Data & Generate
+                <i class="fas fa-plus-circle"></i> Ambil Data Tambahan
             </button>
-            <!-- Tombol Reset SEMUA Data -->
             <button onclick="resetAllData()" class="btn btn-reset" id="btnReset" style="display:none;">
                 <i class="fas fa-trash-alt"></i> Reset Semua Data
             </button>
@@ -248,7 +243,7 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'invito_tools_v1';
+        const STORAGE_KEY = 'invito_tools_v2'; // Versi diupdate untuk struktur data baru
 
         // --- 1. Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -264,7 +259,7 @@
             if(!scriptUrl) { showToast("Mohon isi URL Apps Script dulu!", "error"); return; }
             if(!baseUrl) { showToast("Mohon isi Base URL dulu!", "error"); return; }
 
-            resultArea.innerHTML = "<div style='text-align:center; padding:40px; color:#888;'><i class='fas fa-circle-notch fa-spin fa-2x'></i><br><br>Memuat data dari Google Sheet...</div>";
+            resultArea.innerHTML = "<div style='text-align:center; padding:40px; color:#888;'><i class='fas fa-circle-notch fa-spin fa-2x'></i><br><br>Mengecek data baru dari Google Sheet...</div>";
 
             const finalUrl = scriptUrl + "?callback=terimaData";
             const scriptElement = document.createElement('script');
@@ -280,35 +275,98 @@
             document.body.appendChild(scriptElement);
         }
 
-        // --- 3. Callback Penerima Data ---
-        function terimaData(data) {
-            const baseUrl = document.getElementById('baseUrl').value;
-            
-            if (!data || data.length === 0) {
-                document.getElementById('resultArea').innerHTML = `
-                    <div style='padding:20px; background:#ffebee; color:#c62828; border-radius:8px; text-align:center;'>
-                        <i class="fas fa-exclamation-circle"></i> Data kosong.
-                    </div>`;
+        // --- 3. Callback Penerima Data & MERGE LOGIC ---
+        function terimaData(remoteData) {
+            if (!remoteData || remoteData.length === 0) {
+                // Jika kosong, tampilkan pesan tapi jangan hapus yang sudah ada
+                const currentStorage = getStorageObject();
+                if(currentStorage.active && currentStorage.active.length > 0) {
+                    showToast("Tidak ada data baru di Google Sheet.", "info");
+                    renderTable(currentStorage.active, currentStorage.baseUrl);
+                } else {
+                    document.getElementById('resultArea').innerHTML = `
+                        <div style='padding:20px; background:#ffebee; color:#c62828; border-radius:8px; text-align:center;'>
+                            <i class="fas fa-exclamation-circle"></i> Data kosong di Google Sheet.
+                        </div>`;
+                }
                 return;
             }
 
-            saveToStorage(data, baseUrl, document.getElementById('scriptUrl').value);
-            renderTable(data, baseUrl);
-            showToast("Data berhasil dimuat!", "success");
+            // --- LOGIKA MERGE UTAMA ---
+            const currentStorage = getStorageObject();
+            let addedCount = 0;
+
+            // Kita hanya memproses remoteData yang NAMANYA belum ada di historyNames
+            remoteData.forEach(remoteItem => {
+                const remoteName = remoteItem.name ? remoteItem.name.toString().trim() : "";
+                
+                // Jika nama kosong, skip
+                if(!remoteName) return;
+
+                // Cek apakah nama ini pernah diproses sebelumnya?
+                if (!currentStorage.historyNames.includes(remoteName)) {
+                    // Ini DATA BARU! 
+                    // 1. Tambahkan ke list aktif
+                    currentStorage.active.push(remoteItem);
+                    // 2. Catat namanya di history (agar tidak diambil lagi jika dihapus nanti)
+                    currentStorage.historyNames.push(remoteName);
+                    addedCount++;
+                }
+                // Jika nama sudah ada di historyNames, kita ABISKAN (tidak melakukan apa-apa)
+                // Ini mencegah data yang sudah dihapus manual kembali muncul.
+            });
+
+            // Simpan konfigurasi URL terbaru
+            currentStorage.baseUrl = document.getElementById('baseUrl').value;
+            currentStorage.scriptUrl = document.getElementById('scriptUrl').value;
+
+            // Simpan ke Local Storage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
+
+            // Render
+            renderTable(currentStorage.active, currentStorage.baseUrl);
+            
+            if (addedCount > 0) {
+                showToast(`Berhasil! ${addedCount} data baru ditambahkan.`, "success");
+            } else {
+                showToast("Tidak ada data baru. Data lama yang dihapus tidak dimuat ulang.", "info");
+            }
         }
 
-        // --- 4. Render Tabel ---
+        // --- 4. Helper Struktur Storage ---
+        function getStorageObject() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    // Error format, reset
+                    return createEmptyStorage();
+                }
+            }
+            return createEmptyStorage();
+        }
+
+        function createEmptyStorage() {
+            return {
+                active: [],      // Data yang sedang ditampilkan
+                historyNames: [], // Nama yang PERNAH diambil (untuk mencegah duplikat/pengembalian data terhapus)
+                baseUrl: "",
+                scriptUrl: ""
+            };
+        }
+
+        // --- 5. Render Tabel ---
         function renderTable(data, baseUrl) {
             const resultArea = document.getElementById('resultArea');
             const cleanData = data.filter(item => item.name && item.name !== "" && item.name !== null);
 
-            // Cek jika data kosong setelah filter
             if(cleanData.length === 0) {
                 resultArea.innerHTML = `
                     <div style='padding:20px; background:#e8f5e9; color:#2e7d32; border-radius:8px; text-align:center;'>
-                        <i class="fas fa-check-circle"></i> Semua data tamu telah selesai dihapus.
+                        <i class="fas fa-check-circle"></i> Tidak ada tamu aktif untuk ditampilkan.
                     </div>`;
-                document.getElementById('btnReset').style.display = 'none';
+                document.getElementById('btnReset').style.display = 'inline-flex'; // Tetap tampilkan reset untuk bersihkan history
                 return;
             }
 
@@ -328,7 +386,6 @@
                 const safeName = item.name ? item.name.toString() : "Tamu";
                 const link = `${baseUrl}?to=${encodeURIComponent(safeName)}`;
                 
-                // WA Logic
                 let waButton = "-";
                 if(item.wa) {
                     let formattedWA = item.wa.toString().trim().replace(/[^0-9]/g, '');
@@ -339,9 +396,8 @@
                     waButton = `<a href="${waLink}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> Kirim</a>`;
                 }
 
-                // Tombol Hapus Satu Tamu (Hanya di list lokal)
                 const deleteBtn = `
-                    <button onclick="deleteSingleGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list">
+                    <button onclick="deleteSingleGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list (Data Excel tetap aman)">
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
@@ -367,70 +423,54 @@
             document.getElementById('btnReset').style.display = 'inline-flex';
         }
 
-        // --- 5. Hapus SATU Tamu ---
+        // --- 6. Hapus SATU Tamu (Hanya dari active list, History tetap tersimpan) ---
         function deleteSingleGuest(index) {
-            if(!confirm("Hapus tamu ini dari daftar undangan? (Data di Google Sheet tetap aman)")) return;
+            if(!confirm("Hapus tamu ini dari daftar? Jika Anda ambil data lagi nanti, tamu ini tidak akan muncul lagi karena sudah dianggap selesai.")) return;
 
-            // Ambil data saat ini dari storage
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return;
-
-            const parsed = JSON.parse(stored);
+            const currentStorage = getStorageObject();
             
-            // Hapus item berdasarkan index
-            parsed.data.splice(index, 1);
+            // Hapus dari list aktif
+            const removedItem = currentStorage.active.splice(index, 1)[0];
             
-            // Simpan kembali data yang sudah diupdate
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+            // Catat: Jika nama belum ada di history (seharusnya sudah ada), tambahkan ke history
+            // Ini untuk keamanan jika user menghapus item baru sebelum menyimpan
+            if(removedItem && removedItem.name && !currentStorage.historyNames.includes(removedItem.name)) {
+                currentStorage.historyNames.push(removedItem.name);
+            }
 
-            // Render ulang tabel
-            renderTable(parsed.data, parsed.baseUrl);
-            showToast("Tamu berhasil dihapus dari list.", "success");
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
+            renderTable(currentStorage.active, currentStorage.baseUrl);
+            showToast("Tamu dihapus dari list.", "success");
         }
 
-        // --- 6. Local Storage Functions ---
-        function saveToStorage(data, baseUrl, scriptUrl) {
-            const payload = {
-                data: data,
-                baseUrl: baseUrl,
-                scriptUrl: scriptUrl,
-                timestamp: new Date().getTime()
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        }
-
+        // --- 7. Load dari Storage ---
         function loadFromStorage() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    document.getElementById('baseUrl').value = parsed.baseUrl || '';
-                    document.getElementById('scriptUrl').value = parsed.scriptUrl || '';
-                    
-                    if(parsed.data && parsed.data.length > 0) {
-                        renderTable(parsed.data, parsed.baseUrl);
-                        showToast("Data tersimpan dimuat.", "info");
-                    }
-                } catch (e) {
-                    console.error("Storage error", e);
-                    localStorage.removeItem(STORAGE_KEY);
+            const currentStorage = getStorageObject();
+            document.getElementById('baseUrl').value = currentStorage.baseUrl || '';
+            document.getElementById('scriptUrl').value = currentStorage.scriptUrl || '';
+            
+            if(currentStorage.active && currentStorage.active.length > 0) {
+                renderTable(currentStorage.active, currentStorage.baseUrl);
+                // Jika ada data history tapi list aktif kosong (misal semua sudah dihapus)
+                if(currentStorage.active.length === 0 && currentStorage.historyNames.length > 0) {
+                    showToast("Semua data telah diproses sebelumnya.", "info");
                 }
             }
         }
 
-        // --- 7. Reset SEMUA Data ---
+        // --- 8. Reset SEMUA Data (Termasuk History) ---
         function resetAllData() {
-            if(confirm("Lanjutkan?")) {
+            if(confirm("PERINGATAN: Ini akan menghapus SEMUA data (List Tamu, Riwayat Nama, dan Konfigurasi). Anda akan mulai dari awal nanti.")) {
                 localStorage.removeItem(STORAGE_KEY);
                 document.getElementById('resultArea').innerHTML = "";
                 document.getElementById('baseUrl').value = "";
                 document.getElementById('scriptUrl').value = "";
                 document.getElementById('btnReset').style.display = 'none';
-                showToast("Semua data berhasil di-reset.", "success");
+                showToast("Semua data di-reset total.", "success");
             }
         }
 
-        // --- 8. Helper Toast ---
+        // --- 9. Helper Toast ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -446,7 +486,7 @@
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
     </script>
 </body>
