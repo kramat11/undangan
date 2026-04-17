@@ -626,47 +626,34 @@
         }
 
         // --- 6. FORM SUBMIT (RSVP) ---
-        // --- SCRIPT TAMBAHAN: TAMPILKAN UCAPAN LANGSUNG ---
+        // --- SCRIPT RSVP SINGKRON KE GOOGLE SHEET ---
 function submitRSVP(e) {
-    e.preventDefault(); // Mencegah reload halaman
-
-    // 1. Ambil data dari input form
+    e.preventDefault();
+    
     const namaInput = document.querySelector('input[placeholder="Nama Lengkap"]');
-    const ucapanInput = document.querySelector('textarea[placeholder="Ucapan & Doa"]');
+    const statusInput = document.querySelector('select'); // Asumsi select pertama adalah status
     
     const nama = namaInput.value;
-    const ucapan = ucapanInput.value;
-    const wishesBox = document.querySelector('.wishes-box');
+    const status = statusInput.value;
 
-    // 2. Cek apakah data terisi
-    if (nama && ucapan) {
-        // Buat Inisial Avatar (Ambil 2 huruf depan nama)
-        const inisial = nama.substring(0, 2).toUpperCase();
-
-        // 3. Buat Elemen HTML Baru
-        const newWish = document.createElement('div');
-        newWish.className = 'wish-item';
-        // Beri animasi masuk agar smooth
-        newWish.style.animation = "slideDown 0.5s ease-out"; 
+    if (nama) {
+        // Kirim data ke Google Apps Script
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxgjeQ50HVnYS7Ia016ZpGFguUQkSDxBxTtvKEAUHY4fJOc8AlOJpZhuDn3VL4CYxSP/exec'; // GANTI INI!
         
-        newWish.innerHTML = `
-            <div class="wish-avatar" style="background: var(--gold-main); color: black; border: 1px solid white;">${inisial}</div>
-            <div class="wish-content">
-                <h5>${nama}</h5>
-                <p>${ucapan}</p>
-            </div>
-        `;
+        const data = new FormData();
+        data.append('json', JSON.stringify({ name: nama, status: status }));
 
-        // 4. Masukkan ucapan baru ke PALING ATAS daftar (prepend)
-        wishesBox.insertBefore(newWish, wishesBox.firstChild);
-
-        // 5. Reset Form agar kosong kembali
-        namaInput.value = '';
-        ucapanInput.value = '';
-        
-        alert("Terima kasih " + nama + "! Ucapan Anda telah berhasil ditampilkan.");
-    } else {
-        alert("Mohon lengkapi Nama dan Ucapan.");
+        fetch(scriptURL, {
+            method: 'POST',
+            body: JSON.stringify({ name: nama, status: status }) // Kirim sebagai JSON
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Terima kasih " + nama + "! Konfirmasi kehadiran Anda telah tersimpan.");
+            // (Opsional) Tampilkan ucapan di layar
+            displayWish(nama, "Mengonfirmasi: " + status);
+        })
+        .catch(error => console.error('Error:', error));
     }
 }
     </script>
