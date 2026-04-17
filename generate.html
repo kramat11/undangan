@@ -1,63 +1,75 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <title>Generator Link Undangan</title>
+    <title>Generator Otomatis (Sheet)</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; background: #f4f4f4; }
-        textarea { width: 100%; height: 200px; padding: 10px; margin-bottom: 10px; }
-        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; font-size: 18px; }
-        button { padding: 10px 20px; background: #25D366; color: white; border: none; cursor: pointer; font-size: 16px; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #25D366; color: white; border: none; cursor: pointer; border-radius: 5px; }
         button:hover { background: #128C7E; }
-        #result { margin-top: 20px; white-space: pre-wrap; word-break: break-all; background: white; padding: 20px; border: 1px solid #ddd; display: none; }
-        .copy-btn { background: #007bff; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .link-box { font-family: monospace; color: #007bff; }
     </style>
 </head>
 <body>
-    <h2>Alat Generator Link Undangan</h2>
-    <p>Paste daftar nama tamu di bawah ini (Satu nama per baris):</p>
-    
-    <textarea id="nameList" placeholder="Reyna Santa&#10;Dewi Kartika&#10;Siska Rika"></textarea>
-    
-    <p>Masukkan Link Dasar Undangan:</p>
-    <input type="text" id="baseUrl" placeholder="https://websiteanda.com/undangan/andi-siti/index.html">
-    
-    <button onclick="generateLinks()">Buat Link</button>
-    
-    <div id="result"></div>
-    <button id="copyBtn" class="copy-btn" onclick="copyResult()" style="display:none;">Salin Semua Link</button>
+    <div class="container">
+        <h2>Generator Link Otomatis</h2>
+        
+        <!-- 1. Input Base URL -->
+        <label>Base URL Undangan:</label>
+        <input type="text" id="baseUrl" placeholder="https://websiteanda.com/undangan/andi-siti/index.html">
+        
+        <!-- 2. Input URL Script -->
+        <label>URL Apps Script:</label>
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/.../exec">
+        
+        <button onclick="fetchData()">Ambil Data dari Sheet</button>
+        
+        <!-- 3. Hasil Tabel -->
+        <div id="resultArea"></div>
+    </div>
 
     <script>
-        function generateLinks() {
-            const names = document.getElementById('nameList').value.trim().split('\n');
-            let baseUrl = document.getElementById('baseUrl').value.trim();
-            const resultDiv = document.getElementById('result');
-            const copyBtn = document.getElementById('copyBtn');
-            
-            if(baseUrl === '') { alert('Isi link dasar dulu!'); return; }
-            if(!baseUrl.endsWith('.html')) { baseUrl += '/index.html'; } // Tambah index.html jika lupa
+        function fetchData() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+            const resultArea = document.getElementById('resultArea');
 
-            let output = '';
-            
-            names.forEach((name, index) => {
-                if(name.trim() !== '') {
-                    // Bersihkan spasi berlebih dan encode URL (spasi jadi %20)
-                    const cleanName = name.trim();
-                    const encodedName = encodeURIComponent(cleanName);
-                    const link = `${baseUrl}?to=${encodedName}`;
-                    
-                    output += `${index + 1}. ${cleanName}\n${link}\n\n`;
-                }
-            });
+            if(!scriptUrl) { alert("Isi URL Script dulu!"); return; }
 
-            resultDiv.innerText = output;
-            resultDiv.style.display = 'block';
-            copyBtn.style.display = 'inline-block';
-        }
+            resultArea.innerHTML = "<p>Memuat data...</p>";
 
-        function copyResult() {
-            const resultText = document.getElementById('result').innerText;
-            navigator.clipboard.writeText(resultText).then(() => {
-                alert('Semua link berhasil disalin!');
+            // Ambil data dari Google Script
+            fetch(scriptUrl)
+            .then(response => response.json())
+            .then(data => {
+                let html = `<table>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Tamu</th>
+                        <th>Link Undangan</th>
+                    </tr>`;
+
+                data.forEach((item, index) => {
+                    const link = `${baseUrl}?to=${encodeURIComponent(item.name)}`;
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.name}</td>
+                            <td><a href="${link}" target="_blank" class="link-box">${link}</a></td>
+                        </tr>
+                    `;
+                });
+
+                html += "</table>";
+                resultArea.innerHTML = html;
+            })
+            .catch(error => {
+                resultArea.innerHTML = "<p style='color:red'>Gagal mengambil data. Pastikan Access Script diatur ke 'Anyone'.</p>";
+                console.error(error);
             });
         }
     </script>
