@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invito - Jasa Undangan Digital Premium</title>
+    <!-- Font: Poppins & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CSS PREMIUM TERBARU --- */
+        :root {
+            --primary: #1e293b; /* Dark Slate - Lebih modern daripada Biru tua biasa */
+            --accent: #c5a059; /* Elegant Gold */
+            --accent-gradient: linear-gradient(135deg, #d4af37 0%, #f3e5ab 100%);
+            --light: #f8fafc;
+            --white: #ffffff;
+            --text: #475569;
+            --text-light: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.85); /* Efek Kaca */
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Easing curve premium */
+        }
+
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* SCROLL SMOOTH & STABILITAS NAVBAR */
+        html { 
+            scroll-behavior: smooth; 
+            scroll-padding-top: 90px; /* Mencegah header menutupi judul saat diklik */
+        }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            color: var(--text); 
+            line-height: 1.7; 
+            background-color: var(--light);
+            overflow-x: hidden; 
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); line-height: 1.2; }
+        
+        .text-accent { color: var(--accent); }
+        .text-gradient {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .section-title { text-align: center; margin-bottom: 4rem; position: relative; }
+        .section-title h2 { font-size: 2.8rem; margin-bottom: 1rem; font-weight: 700; }
+        .section-title p { max-width: 600px; margin: 0 auto; color: var(--text-light); font-size: 1.1rem; }
+        
+        /* Garis dekoratif di bawah judul */
+        .section-title::after {
+            content: ''; display: block; width: 60px; height: 3px; 
+            background: var(--accent); margin: 20px auto 0; border-radius: 2px;
+        }
+
+        /* --- BUTTONS --- */
+        .btn { 
+            display: inline-block; padding: 14px 35px; border-radius: 50px; 
+            text-decoration: none; font-weight: 600; letter-spacing: 0.5px;
+            transition: var(--transition); border: none; cursor: pointer; position: relative; overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-primary { 
+            background: var(--accent); color: white; 
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+        }
+        .btn-primary:hover { 
+            background: var(--primary); 
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(197, 160, 89, 0.4);
+        }
+        
+        .btn-outline { 
+            background: transparent; border: 2px solid var(--primary); color: var(--primary); 
+        }
+        .btn-outline:hover { 
+            background: var(--primary); color: white; 
+            transform: translateY(-3px);
+        }
+
+        /* Tombol Kecil untuk Portfolio */
+        .btn-sm { padding: 10px 25px; font-size: 0.9rem; }
+
+        /* --- NAVBAR (GLASSMORPHISM) --- */
+        header { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); /* Efek Blur */
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            position: sticky; top: 0; z-index: 1000; 
+            transition: var(--transition);
+        }
+        
+        .navbar { max-width: 1280px; margin: 0 auto; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .logo { 
+            font-size: 1.8rem; font-weight: 700; font-family: 'Playfair Display', serif; 
+            color: var(--primary); text-decoration: none; letter-spacing: -0.5px;
+        }
+        .logo span { color: var(--accent); }
+        
+        .nav-links { list-style: none; display: flex; gap: 40px; }
+        .nav-links a { 
+            text-decoration: none; color: var(--primary); font-weight: 500; font-size: 0.95rem; 
+            transition: var(--transition); position: relative;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0;
+            background-color: var(--accent); transition: var(--transition);
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .mobile-menu-btn { display: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); background: none; border: none; }
+
+        /* --- HERO SECTION --- */
+        .hero { 
+            padding: 100px 20px; display: flex; align-items: center; min-height: 100vh; 
+            background: radial-gradient(circle at top right, rgba(197, 160, 89, 0.1) 0%, transparent 40%);
+        }
+        
+        .container { max-width: 1280px; margin: 0 auto; width: 100%; display: flex; flex-wrap: wrap; align-items: center; }
+        
+        .hero-text { flex: 1 1 500px; padding-right: 60px; }
+        .hero-text h1 { font-size: 4rem; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+        .hero-text p { font-size: 1.2rem; margin-bottom: 2.5rem; color: var(--text); max-width: 90%; }
+        
+        .hero-image { flex: 1 1 500px; text-align: center; position: relative; }
+        .hero-image img { 
+            max-width: 90%; border-radius: 30px; 
+            box-shadow: 20px 20px 60px rgba(0,0,0,0.1);
+            transform: rotate(-3deg); transition: var(--transition);
+        }
+        .hero-image:hover img { transform: rotate(0deg) scale(1.02); }
+        
+        .hero-blob { 
+            position: absolute; top: 10%; right: 5%; width: 100px; height: 100px; 
+            background: var(--accent); border-radius: 50%; z-index: -1; 
+            filter: blur(60px); opacity: 0.6; animation: pulse-blob 5s infinite alternate;
+        }
+
+        @keyframes pulse-blob { 0% { transform: scale(1); } 100% { transform: scale(1.5); } }
+
+        /* --- FEATURES --- */
+        .features { padding: 100px 0; background: var(--white); position: relative; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; text-align: center; }
+        
+        .feature-card { 
+            padding: 40px 20px; border-radius: 20px; transition: var(--transition); 
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .feature-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: var(--shadow-lg); 
+            background: #fff;
+        }
+        .feature-icon { 
+            width: 70px; height: 70px; background: rgba(197, 160, 89, 0.1); color: var(--accent); 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; margin: 0 auto 25px;
+        }
+        .feature-card h3 { margin-bottom: 15px; font-size: 1.3rem; }
+
+        /* --- PRICING --- */
+        .pricing { padding: 100px 0; background: var(--light); }
+        .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; }
+        
+        .price-card { 
+            background: var(--white); padding: 50px 30px; border-radius: 20px; 
+            box-shadow: var(--shadow-sm); flex: 1 1 300px; max-width: 380px; 
+            position: relative; text-align: center; transition: var(--transition); 
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .price-card.popular { 
+            transform: scale(1.05); border: 2px solid var(--accent); z-index: 2; 
+            box-shadow: var(--shadow-lg);
+        }
+        .price-card:hover { transform: translateY(-10px) scale(1.05); }
+        
+        .badge { 
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%); 
+            background: var(--accent-gradient); color: white; padding: 6px 20px; 
+            border-radius: 30px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(197, 160, 89, 0.3);
+        }
+        
+        .price-header h3 { font-size: 1.6rem; margin-bottom: 10px; }
+        .price { 
+            font-size: 3rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; 
+            font-family: 'Playfair Display', serif; 
+        }
+        .price span { font-size: 1rem; color: var(--text-light); font-weight: 400; }
+        
+        .features-list { list-style: none; margin-bottom: 30px; text-align: left; padding: 0 10px; }
+        .features-list li { margin-bottom: 15px; display: flex; align-items: center; font-size: 0.95rem; }
+        .features-list li i { color: var(--accent); margin-right: 15px; font-size: 1.1rem; }
+        .features-list li.disabled { color: #cbd5e1; text-decoration: line-through; opacity: 0.7; }
+
+        /* --- PORTFOLIO --- */
+        .portfolio { padding: 100px 0; background: var(--white); }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        
+        .portfolio-item { 
+            position: relative; border-radius: 20px; overflow: hidden; 
+            box-shadow: var(--shadow-sm); 
+        }
+        .portfolio-item img { 
+            width: 100%; height: 450px; object-fit: cover; 
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: block; 
+        }
+        .portfolio-overlay { 
+            position: absolute; inset: 0; background: rgba(30, 41, 59, 0.85); 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            opacity: 0; transition: var(--transition); color: white; text-align: center; padding: 20px; 
+        }
+        
+        .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+        .portfolio-item:hover img { transform: scale(1.1); }
+        
+        .portfolio-tag { 
+            background: var(--accent); padding: 6px 14px; font-size: 0.75rem; border-radius: 6px; 
+            margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+        }
+
+        /* --- FOOTER --- */
+        footer { background: var(--primary); color: var(--white); padding: 70px 0 30px; position: relative; overflow: hidden; }
+        footer::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--accent-gradient); }
+        
+        .footer-content { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 50px; max-width: 1280px; margin: 0 auto; padding: 0 30px; }
+        .footer-col h3 { color: var(--accent); margin-bottom: 25px; font-size: 1.3rem; }
+        .footer-col p, .footer-col a { color: #cbd5e1; text-decoration: none; margin-bottom: 12px; display: block; transition: color 0.3s; }
+        .footer-col a:hover { color: var(--accent); padding-left: 5px; }
+        .social-icons a { display: inline-block; margin-right: 20px; font-size: 1.4rem; color: white; }
+        .social-icons a:hover { color: var(--accent); transform: translateY(-3px); display: inline-block; }
+        
+        .copyright { text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: #94a3b8; }
+
+        /* --- ANIMATIONS --- */
+        .fade-up { 
+            opacity: 0; transform: translateY(40px); 
+            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); 
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 992px) {
+            .hero-text h1 { font-size: 3rem; }
+            .price-card.popular { transform: scale(1); }
+            .price-card:hover { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 768px) {
+            .hero { flex-direction: column-reverse; text-align: center; padding-top: 140px; }
+            .hero-text { padding-right: 0; margin-bottom: 50px; }
+            .hero-image { width: 100%; }
+            .hero-text h1 { font-size: 2.5rem; }
+            
+            .nav-links { 
+                display: none; flex-direction: column; position: absolute; 
+                top: 80px; left: 0; width: 100%; background: white; 
+                padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+                text-align: center; gap: 20px;
+            }
+            .nav-links.active { display: flex; animation: slideDown 0.3s ease-out forwards; }
+            .mobile-menu-btn { display: block; }
+            
+            @keyframes slideDown { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header>
+        <div class="navbar">
+            <a href="#" class="logo">Invito<span>.</span></a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home">Beranda</a></li>
+                <li><a href="#features">Keunggulan</a></li>
+                <li><a href="#pricing">Daftar Harga</a></li>
+                <li><a href="#portfolio">Demo Template</a></li>
+                <li><a href="#contact" class="btn btn-primary" style="padding: 8px 20px;">Pesan Sekarang</a></li>
+            </ul>
+            <div class="mobile-menu-btn" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="hero">
+    <div class="container">
+        <div class="hero-text fade-up">
+            <!-- Ubah Headline -->
+            <h1>Undangan Pernikahan <span class="text-accent">Elegan & Modern</span></h1>
+            <p>Bagikan kebahagiaan momen pernikahan Anda tanpa batas jarak. Hemat biaya, praktis, dan ramah lingkungan. Cukup satu link untuk semua tamu.</p>
+            
+            <!-- Ubah CTA Button -->
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="#portfolio" class="btn btn-primary">Pilih Tema Undangan</a>
+                <a href="https://wa.me/6281234567890" target="_blank" class="btn btn-outline">Tanya Admin <i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+        <div class="hero-image fade-up">
+            <div class="hero-blob"></div>
+            <!-- Ganti gambar agar terlihat seperti tampilan HP undangan -->
+            <img src="https://picsum.photos/seed/weddingphone/600/500" alt="Undangan Digital HP">
+        </div>
+    </div>
+</section>
+
+    <section id="features" class="features">
+    <div class="container">
+        <div class="section-title fade-up">
+            <h2>Mengapa Undangan Digital?</h2>
+            <p>Solusi cerdas untuk momen spesial Anda.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card fade-up">
+                <i class="fas fa-share-alt feature-icon"></i>
+                <h3>Mudah Dibagikan</h3>
+                <p>Cukup kirim satu link WhatsApp ke grup keluarga atau teman, undangan sampai ke ribuan orang seketika.</p>
+            </div>
+            <div class="feature-card fade-up">
+                <i class="fas fa-map-marked-alt feature-icon"></i>
+                <h3>Fitur Lengkap</h3>
+                <p>Tersedia peta lokasi (Google Maps), hitung mundur acara, galeri foto, dan amplop digital dalam satu halaman.</p>
+            </div>
+            <div class="feature-card fade-up">
+                <i class="fas fa-save-money feature-icon"></i>
+                <h3>Hemat Biaya</h3>
+                <p>Tidak perlu cetak kartu fisik, beli amplop, dan biaya kurir. Hemat hingga jutaan rupiah.</p>
+            </div>
+        </div>
+    </div>
+</section>
+    
+    <!-- PRICING -->
+    <section id="pricing" class="pricing">
+    <div class="container">
+        <div class="section-title fade-up">
+            <h2>Pilihan Paket</h2>
+            <p>Pilih paket yang sesuai dengan kebutuhan acara pernikahan Anda.</p>
+        </div>
+        
+        <div class="pricing-grid">
+            <!-- Standard -->
+            <div class="price-card fade-up">
+                <div class="price-header">
+                    <h3>Paket Basic</h3>
+                    <div class="price">Rp 99.000<span>/undangan</span></div>
+                </div>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> Masa aktif 3 Bulan</li>
+                    <li><i class="fas fa-check-circle"></i> 5 Foto Galeri</li>
+                    <li><i class="fas fa-check-circle"></i> Musik Latar</li>
+                    <li><i class="fas fa-check-circle"></i> Fitur Buka Undangan</li>
+                    <li class="disabled"><i class="fas fa-times-circle"></i> Custom Link Unik</li>
+                    <li class="disabled"><i class="fas fa-times-circle"></i> Data Tamu (RSVP)</li>
+                </ul>
+                <a href="https://wa.me/6281234567890?text=Halo%20saya%20mau%20pesan%20Paket%20Basic" target="_blank" class="btn btn-outline" style="width: 100%">Pesan Ini</a>
+            </div>
+
+            <!-- Exclusive -->
+            <div class="price-card popular fade-up">
+                <div class="badge">Paling Laris</div>
+                <div class="price-header">
+                    <h3>Paket Premium</h3>
+                    <div class="price">Rp 199.000<span>/undangan</span></div>
+                </div>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> <strong>Masa aktif 1 Tahun</strong></li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited Galeri</li>
+                    <li><i class="fas fa-check-circle"></i> Custom Nama Link (misal: invito.com/roma-juli)</li>
+                    <li><i class="fas fa-check-circle"></i> Fitur Buka Undangan Animasi</li>
+                    <li><i class="fas fa-check-circle"></i> Hitung Mundur (Countdown)</li>
+                    <li><i class="fas fa-check-circle"></i> Amplop Digital</li>
+                    <li class="disabled"><i class="fas fa-times-circle"></i> Data Tamu (RSVP)</li>
+                </ul>
+                <a href="https://wa.me/6281234567890?text=Halo%20saya%20mau%20pesan%20Paket%20Premium" target="_blank" class="btn btn-primary" style="width: 100%">Pesan Ini</a>
+            </div>
+
+            <!-- VIP -->
+            <div class="price-card fade-up">
+                <div class="price-header">
+                    <h3>Paket Eksklusif</h3>
+                    <div class="price">Rp 349.000<span>/undangan</span></div>
+                </div>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> <strong>Masa aktif Selamanya</strong></li>
+                    <li><i class="fas fa-check-circle"></i> Desain Full Custom Request</li>
+                    <li><i class="fas fa-check-circle"></i> Domain Sendiri (.com)</li>
+                    <li><i class="fas fa-check-circle"></i> Video Background</li>
+                    <li><i class="fas fa-check-circle"></i> Admin Panel Data Tamu</li>
+                    <li><i class="fas fa-check-circle"></i> Prioritas Revisi & Support</li>
+                </ul>
+                <a href="https://wa.me/6281234567890?text=Halo%20saya%20mau%20pesan%20Paket%20Eksklusif" target="_blank" class="btn btn-outline" style="width: 100%">Pesan Ini</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- PORTFOLIO / TEMPLATES -->
+    <section id="portfolio" class="portfolio">
+        <div class="container">
+            <div class="section-title fade-up">
+                <h2>Koleksi Template</h2>
+                <p>Pilih desain yang Anda sukai. Klik tombol preview untuk melihat demo.</p>
+            </div>
+            
+            <!-- WRAPPER GRID DITAMBAHKAN DISINI -->
+            <div class="portfolio-grid">
+                <!-- Template Rustic -->
+                <div class="portfolio-item fade-up">
+                    <img src="https://picsum.photos/seed/wedding1/400/500" alt="Rustic">
+                    <div class="portfolio-overlay">
+                        <span class="portfolio-tag">Rustic Theme</span>
+                        <h3>Rustic Garden</h3>
+                        <p>Minimalis dan hangat dengan nuansa alam.</p>
+                        <br>
+                        <a href="rustic.html" target="_blank" class="btn btn-primary btn-sm">Lihat Demo</a>
+                    </div>
+                </div>
+
+                <!-- Template Gold -->
+                <div class="portfolio-item fade-up">
+                    <img src="https://picsum.photos/seed/wedding2/400/500" alt="Gold">
+                    <div class="portfolio-overlay">
+                        <span class="portfolio-tag">Elegant Gold</span>
+                        <h3>Royal Gold</h3>
+                        <p>Mewah dengan aksen emas dan font serif klasik.</p>
+                        <br>
+                        <a href="gold.html" target="_blank" class="btn btn-primary btn-sm">Lihat Demo</a>
+                    </div>
+                </div>
+
+                <!-- Template Modern -->
+                <div class="portfolio-item fade-up">
+                    <img src="https://picsum.photos/seed/wedding3/400/500" alt="Modern">
+                    <div class="portfolio-overlay">
+                        <span class="portfolio-tag">Modern Blue</span>
+                        <h3>Modern Minimalist</h3>
+                        <p>Ceria dengan ilustrasi bunga warna-warni.</p>
+                        <br>
+                        <a href="modern.html" target="_blank" class="btn btn-primary btn-sm">Lihat Demo</a>
+                    </div>
+                </div>
+
+                <!-- Template Monochrome (Baru) -->
+                <div class="portfolio-item fade-up">
+                    <!-- Ganti seed gambar agar beda dengan modern -->
+                    <img src="https://picsum.photos/seed/wedding4/400/500" alt="Mono">
+                    <div class="portfolio-overlay">
+                        <span class="portfolio-tag">Vogue Style</span>
+                        <h3>Monochrome</h3>
+                        <p>Editorial hitam putih yang elegan dan minimalis.</p>
+                        <br>
+                        <a href="mono.html" target="_blank" class="btn btn-primary btn-sm">Lihat Demo</a>
+                    </div>
+                </div>      
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FOOTER -->
+    <section style="background: var(--primary); padding: 60px 20px; text-align: center; color: white;">
+        <div class="container fade-up">
+            <h2 style="color: white; margin-bottom: 20px;">Siap Membuat Undangan Impian?</h2>
+            <p style="margin-bottom: 30px; color: #ddd;">Konsultasikan kebutuhan acara Anda sekarang. Kami siap membantu.</p>
+            <a href="https://wa.me/6281234567890" class="btn btn-primary" style="background: var(--accent); border: none;">
+                <i class="fab fa-whatsapp"></i> Hubungi via WhatsApp
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-col" style="flex: 2; min-width: 250px;">
+                <h3>Invito.</h3>
+                <p>Platform pembuatan undangan digital terpercaya di Indonesia. Membantu Anda berbagi kebahagiaan dengan cara yang lebih modern.</p>
+                <div class="social-icons" style="margin-top: 20px;">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+            <div class="footer-col" style="flex: 1; min-width: 150px;">
+                <h3>Navigasi</h3>
+                <a href="#home">Beranda</a>
+                <a href="#features">Keunggulan</a>
+                <a href="#pricing">Harga</a>
+                <a href="#portfolio">Demo</a>
+            </div>
+            <div class="footer-col" style="flex: 1; min-width: 200px;">
+                <h3>Kontak Kami</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                <p><i class="fas fa-envelope"></i> admin@invito.com</p>
+                <p><i class="fab fa-whatsapp"></i> +62 812 3456 7890</p>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2024 Invito Digital Invitation. All Rights Reserved.
+        </div>
+    </footer>
+
+    <!-- SCRIPT -->
+    <script>
+        // Toggle Mobile Menu
+        function toggleMenu() {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('active');
+        }
+
+        // Close menu when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navLinks').classList.remove('active');
+            });
+        });
+
+        // Scroll Animation (Intersection Observer)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
