@@ -14,7 +14,6 @@
             --primary: #2c3e50;
             --accent: #c5a059;
             --danger: #e74c3c;
-            --danger-hover: #c0392b;
             --bg: #f0f2f5;
             --text: #555;
             --white: #ffffff;
@@ -144,7 +143,6 @@
             padding: 6px 12px;
             background-color: #25D366;
             color: white;
-            text-decoration: none;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
@@ -175,12 +173,131 @@
             border-color: var(--danger);
         }
 
+        /* --- MODAL / POPUP STYLES --- */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background-color: #fff;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 25px;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #999;
+            transition: 0.2s;
+        }
+        .btn-close-modal:hover { color: var(--danger); }
+
+        .modal-body .info-group {
+            margin-bottom: 15px;
+        }
+        .modal-body label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .modal-body input[type="text"], 
+        .modal-body textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+        .modal-body textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-cancel-modal {
+            background: #eee;
+            color: #555;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-cancel-modal:hover { background: #e0e0e0; }
+
+        .btn-send-modal {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-send-modal:hover { background: #128C7E; }
+
         /* Toast Notification */
         #toast-container {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 1000;
+            z-index: 1001; /* Di atas modal jika perlu */
         }
         .toast {
             background: #333;
@@ -216,6 +333,36 @@
 <body>
     <div id="toast-container"></div>
 
+    <!-- Modal Popup WhatsApp -->
+    <div id="waModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Kirim Undangan WhatsApp</h3>
+                <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-group">
+                    <label>Nama Penerima</label>
+                    <input type="text" id="modalName" readonly style="font-weight: 600; color: var(--primary);">
+                </div>
+                <div class="info-group">
+                    <label>Nomor WhatsApp</label>
+                    <input type="text" id="modalPhone" readonly>
+                </div>
+                <div class="info-group">
+                    <label>Pesan Undangan</label>
+                    <textarea id="modalMessage" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel-modal" onclick="closeModal()">Batal</button>
+                <button class="btn-send-modal" id="btnExecuteSend" onclick="executeSend()">
+                    <i class="fab fa-whatsapp"></i> Kirim Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <h2><i class="fas fa-link"></i> Generator Link Undangan</h2>
         
@@ -243,7 +390,7 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'invito_tools_v2'; // Versi diupdate untuk struktur data baru
+        const STORAGE_KEY = 'invito_tools_v3'; // Update versi
 
         // --- 1. Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -278,7 +425,6 @@
         // --- 3. Callback Penerima Data & MERGE LOGIC ---
         function terimaData(remoteData) {
             if (!remoteData || remoteData.length === 0) {
-                // Jika kosong, tampilkan pesan tapi jangan hapus yang sudah ada
                 const currentStorage = getStorageObject();
                 if(currentStorage.active && currentStorage.active.length > 0) {
                     showToast("Tidak ada data baru di Google Sheet.", "info");
@@ -292,44 +438,31 @@
                 return;
             }
 
-            // --- LOGIKA MERGE UTAMA ---
             const currentStorage = getStorageObject();
             let addedCount = 0;
 
-            // Kita hanya memproses remoteData yang NAMANYA belum ada di historyNames
             remoteData.forEach(remoteItem => {
                 const remoteName = remoteItem.name ? remoteItem.name.toString().trim() : "";
-                
-                // Jika nama kosong, skip
                 if(!remoteName) return;
 
-                // Cek apakah nama ini pernah diproses sebelumnya?
                 if (!currentStorage.historyNames.includes(remoteName)) {
-                    // Ini DATA BARU! 
-                    // 1. Tambahkan ke list aktif
                     currentStorage.active.push(remoteItem);
-                    // 2. Catat namanya di history (agar tidak diambil lagi jika dihapus nanti)
                     currentStorage.historyNames.push(remoteName);
                     addedCount++;
                 }
-                // Jika nama sudah ada di historyNames, kita ABISKAN (tidak melakukan apa-apa)
-                // Ini mencegah data yang sudah dihapus manual kembali muncul.
             });
 
-            // Simpan konfigurasi URL terbaru
             currentStorage.baseUrl = document.getElementById('baseUrl').value;
             currentStorage.scriptUrl = document.getElementById('scriptUrl').value;
 
-            // Simpan ke Local Storage
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
 
-            // Render
             renderTable(currentStorage.active, currentStorage.baseUrl);
             
             if (addedCount > 0) {
                 showToast(`Berhasil! ${addedCount} data baru ditambahkan.`, "success");
             } else {
-                showToast("Tidak ada data baru. Data lama yang dihapus tidak dimuat ulang.", "info");
+                showToast("Tidak ada data baru.", "info");
             }
         }
 
@@ -340,7 +473,6 @@
                 try {
                     return JSON.parse(stored);
                 } catch (e) {
-                    // Error format, reset
                     return createEmptyStorage();
                 }
             }
@@ -349,8 +481,8 @@
 
         function createEmptyStorage() {
             return {
-                active: [],      // Data yang sedang ditampilkan
-                historyNames: [], // Nama yang PERNAH diambil (untuk mencegah duplikat/pengembalian data terhapus)
+                active: [],
+                historyNames: [],
                 baseUrl: "",
                 scriptUrl: ""
             };
@@ -366,7 +498,7 @@
                     <div style='padding:20px; background:#e8f5e9; color:#2e7d32; border-radius:8px; text-align:center;'>
                         <i class="fas fa-check-circle"></i> Tidak ada tamu aktif untuk ditampilkan.
                     </div>`;
-                document.getElementById('btnReset').style.display = 'inline-flex'; // Tetap tampilkan reset untuk bersihkan history
+                document.getElementById('btnReset').style.display = 'inline-flex';
                 return;
             }
 
@@ -386,18 +518,13 @@
                 const safeName = item.name ? item.name.toString() : "Tamu";
                 const link = `${baseUrl}?to=${encodeURIComponent(safeName)}`;
                 
-                let waButton = "-";
-                if(item.wa) {
-                    let formattedWA = item.wa.toString().trim().replace(/[^0-9]/g, '');
-                    if(formattedWA.startsWith('0')) formattedWA = '62' + formattedWA.substring(1);
-                    const pesan = `Halo ${safeName}, kami mengundang Anda ke acara pernikahan kami. Silakan buka undangannya di sini: ${link}`;
-                    const waLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(pesan)}`;
-                    
-                    waButton = `<a href="${waLink}" target="_blank" class="btn-wa"><i class="fab fa-whatsapp"></i> Kirim</a>`;
-                }
+                // Tombol WA sekarang memanggil fungsi openWaModal dengan INDEX
+                // Ini lebih aman daripada melempar string panjang di attribute onclick
+                const waButton = item.wa ? 
+                    `<button onclick="openWaModal(${index})" class="btn-wa"><i class="fab fa-whatsapp"></i> Kirim</button>` : "-";
 
                 const deleteBtn = `
-                    <button onclick="deleteSingleGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list (Data Excel tetap aman)">
+                    <button onclick="deleteSingleGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list">
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
@@ -423,17 +550,63 @@
             document.getElementById('btnReset').style.display = 'inline-flex';
         }
 
-        // --- 6. Hapus SATU Tamu (Hanya dari active list, History tetap tersimpan) ---
+        // --- 6. MODAL / POPUP LOGIC ---
+        let currentWaLink = "";
+
+        function openWaModal(index) {
+            const currentStorage = getStorageObject();
+            const item = currentStorage.active[index];
+            const baseUrl = currentStorage.baseUrl;
+
+            // Persiapan Data
+            const safeName = item.name.toString();
+            let formattedWA = item.wa.toString().trim().replace(/[^0-9]/g, '');
+            if(formattedWA.startsWith('0')) formattedWA = '62' + formattedWA.substring(1);
+
+            const link = `${baseUrl}?to=${encodeURIComponent(safeName)}`;
+            const pesan = `Halo ${safeName}, kami mengundang Anda ke acara pernikahan kami. Silakan buka undangannya di sini: ${link}`;
+            
+            // Link WhatsApp Final
+            currentWaLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(pesan)}`;
+
+            // Isi Data ke Modal
+            document.getElementById('modalName').value = safeName;
+            document.getElementById('modalPhone').value = formattedWA;
+            document.getElementById('modalMessage').value = pesan;
+
+            // Tampilkan Modal
+            const modal = document.getElementById('waModal');
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('waModal');
+            modal.classList.remove('active');
+            currentWaLink = "";
+        }
+
+        function executeSend() {
+            if(currentWaLink) {
+                window.open(currentWaLink, '_blank');
+                closeModal();
+            }
+        }
+
+        // Tutup modal jika klik di luar area kartu
+        window.onclick = function(event) {
+            const modal = document.getElementById('waModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // --- 7. Hapus SATU Tamu ---
         function deleteSingleGuest(index) {
-            if(!confirm("Hapus tamu ini dari daftar? Jika Anda ambil data lagi nanti, tamu ini tidak akan muncul lagi karena sudah dianggap selesai.")) return;
+            if(!confirm("Hapus tamu ini dari daftar?")) return;
 
             const currentStorage = getStorageObject();
-            
-            // Hapus dari list aktif
             const removedItem = currentStorage.active.splice(index, 1)[0];
             
-            // Catat: Jika nama belum ada di history (seharusnya sudah ada), tambahkan ke history
-            // Ini untuk keamanan jika user menghapus item baru sebelum menyimpan
             if(removedItem && removedItem.name && !currentStorage.historyNames.includes(removedItem.name)) {
                 currentStorage.historyNames.push(removedItem.name);
             }
@@ -443,7 +616,7 @@
             showToast("Tamu dihapus dari list.", "success");
         }
 
-        // --- 7. Load dari Storage ---
+        // --- 8. Load & Reset ---
         function loadFromStorage() {
             const currentStorage = getStorageObject();
             document.getElementById('baseUrl').value = currentStorage.baseUrl || '';
@@ -451,16 +624,11 @@
             
             if(currentStorage.active && currentStorage.active.length > 0) {
                 renderTable(currentStorage.active, currentStorage.baseUrl);
-                // Jika ada data history tapi list aktif kosong (misal semua sudah dihapus)
-                if(currentStorage.active.length === 0 && currentStorage.historyNames.length > 0) {
-                    showToast("Semua data telah diproses sebelumnya.", "info");
-                }
             }
         }
 
-        // --- 8. Reset SEMUA Data (Termasuk History) ---
         function resetAllData() {
-            if(confirm("PERINGATAN: Ini akan menghapus SEMUA data (List Tamu, Riwayat Nama, dan Konfigurasi). Anda akan mulai dari awal nanti.")) {
+            if(confirm("PERINGATAN: Ini akan menghapus SEMUA data (List Tamu, Riwayat, dan Konfigurasi).")) {
                 localStorage.removeItem(STORAGE_KEY);
                 document.getElementById('resultArea').innerHTML = "";
                 document.getElementById('baseUrl').value = "";
