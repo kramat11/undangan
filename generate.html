@@ -48,6 +48,7 @@
 
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--text); }
+        .small-note { font-size: 12px; color: #888; margin-top: -5px; margin-bottom: 10px; display: block; }
         
         input { 
             width: 100%; 
@@ -236,6 +237,30 @@
         }
         .btn-close-modal:hover { color: var(--danger); }
 
+        /* Preview Image Style in Modal */
+        .preview-container {
+            width: 100%;
+            height: 150px;
+            background-color: #f0f2f5;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #ccc;
+        }
+        .preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview-placeholder {
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+        }
+
         .modal-body .info-group {
             margin-bottom: 15px;
         }
@@ -256,7 +281,7 @@
             background-color: #f9f9f9;
         }
         .modal-body textarea {
-            height: 150px; /* Diperbesar sedikit untuk template panjang */
+            height: 180px; 
             resize: vertical;
         }
 
@@ -341,6 +366,12 @@
                 <button class="btn-close-modal" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Preview Gambar -->
+                <div class="preview-container">
+                    <div id="previewPlaceholder" class="preview-placeholder">Tidak ada foto (Link Undangan Akan Muncul)</div>
+                    <img id="modalImagePreview" src="" alt="Foto Pengantin" style="display: none;">
+                </div>
+
                 <div class="info-group">
                     <label>Nama Penerima</label>
                     <input type="text" id="modalName" readonly style="font-weight: 600; color: var(--primary);">
@@ -367,8 +398,14 @@
         <h2><i class="fas fa-link"></i> Generator Link Undangan</h2>
         
         <div class="form-group">
-            <label>Nama Pengantin (Otomatis tampil di pesan WA):</label>
+            <label>Nama Pengantin :</label>
             <input type="text" id="coupleName" placeholder="Misal: Andi & Siti">
+        </div>
+
+        <div class="form-group">
+            <label>URL Foto Pengantin :</label>
+            <input type="text" id="coupleImage" placeholder="https://.../foto-couple.jpg (Link Langsung Gambar)">
+            <span class="small-note"></span>
         </div>
 
         <div class="form-group">
@@ -395,7 +432,7 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'invito_tools_v4'; 
+        const STORAGE_KEY = 'invito_tools_v6'; // Update versi
 
         // --- 1. Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -461,6 +498,7 @@
             currentStorage.baseUrl = document.getElementById('baseUrl').value;
             currentStorage.scriptUrl = document.getElementById('scriptUrl').value;
             currentStorage.coupleName = document.getElementById('coupleName').value;
+            currentStorage.coupleImage = document.getElementById('coupleImage').value; 
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
 
@@ -492,7 +530,8 @@
                 historyNames: [],
                 baseUrl: "",
                 scriptUrl: "",
-                coupleName: ""
+                coupleName: "",
+                coupleImage: ""
             };
         }
 
@@ -563,7 +602,8 @@
             const currentStorage = getStorageObject();
             const item = currentStorage.active[index];
             const baseUrl = currentStorage.baseUrl;
-            const coupleName = currentStorage.coupleName || "Nama Pengantin"; // Fallback
+            const coupleName = currentStorage.coupleName || "Nama Pengantin"; 
+            const coupleImage = currentStorage.coupleImage || "";
 
             // Data Dasar
             const safeName = item.name.toString();
@@ -572,20 +612,16 @@
 
             const link = `${baseUrl}?to=${encodeURIComponent(safeName)}`;
             
-            // --- TEMPLATE PESAN WA (UPDATED) ---
-            const pesan = `Assalamualaikum Warahmatullahi Wabarakatuh
+            // --- TEMPLATE PESAN WA (LOGIKA OG IMAGE) ---
+            // Jika ada coupleImage, kita letakkan di akhir pesan agar WA membaca link gambar sebagai preview.
+            
+            let pesan = `Assalamualaikum Warahmatullahi Wabarakatuh
 
 Kepada Yth,
 Bapak/Ibu/Saudar/i
  ${safeName}
 
-Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i (${safeName}) untuk menghadiri acara Resepsi Pernikahan kami.
-
-Info lebih lengkap klik link dibawah ini
-
- ${link}
-
-Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i ${safeName} untuk menghadiri acara Resepsi Pernikahan kami.
 
 Mohon maaf perihal undangan hanya di bagikan melalui pesan ini.
 
@@ -596,6 +632,24 @@ Kami yang berbahagia
 
 Wassalamualaikum Warahmatullahi Wabarakatuh`;
 
+            if (coupleImage) {
+                // Strategi: Masukkan link Undangan, kemudian link Gambar.
+                // WA biasanya mengambil preview dari link terakhir. Jika link terakhir adalah gambar, preview akan menunjukkan gambar.
+                pesan += `
+
+Link Undangan Digital:
+ ${link}
+
+Foto Kami:
+ ${coupleImage}`;
+            } else {
+                // Jika tidak ada gambar, gunakan link undangan biasa
+                pesan += `
+
+Info lebih lengkap klik link dibawah ini:
+ ${link}`;
+            }
+
             // Link WhatsApp Final
             currentWaLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(pesan)}`;
 
@@ -603,6 +657,19 @@ Wassalamualaikum Warahmatullahi Wabarakatuh`;
             document.getElementById('modalName').value = safeName;
             document.getElementById('modalPhone').value = formattedWA;
             document.getElementById('modalMessage').value = pesan;
+
+            // Handle Image Preview di Modal
+            const imgPreview = document.getElementById('modalImagePreview');
+            const imgPlaceholder = document.getElementById('previewPlaceholder');
+            
+            if(coupleImage) {
+                imgPreview.src = coupleImage;
+                imgPreview.style.display = 'block';
+                imgPlaceholder.style.display = 'none';
+            } else {
+                imgPreview.style.display = 'none';
+                imgPlaceholder.style.display = 'block';
+            }
 
             // Tampilkan Modal
             const modal = document.getElementById('waModal');
@@ -652,6 +719,7 @@ Wassalamualaikum Warahmatullahi Wabarakatuh`;
             document.getElementById('baseUrl').value = currentStorage.baseUrl || '';
             document.getElementById('scriptUrl').value = currentStorage.scriptUrl || '';
             document.getElementById('coupleName').value = currentStorage.coupleName || '';
+            document.getElementById('coupleImage').value = currentStorage.coupleImage || ''; 
             
             if(currentStorage.active && currentStorage.active.length > 0) {
                 renderTable(currentStorage.active, currentStorage.baseUrl);
@@ -659,12 +727,13 @@ Wassalamualaikum Warahmatullahi Wabarakatuh`;
         }
 
         function resetAllData() {
-            if(confirm("PERINGATAN: Ini akan menghapus SEMUA data (List Tamu, Riwayat, dan Konfigurasi).")) {
+            if(confirm("lanjutkan?")) {
                 localStorage.removeItem(STORAGE_KEY);
                 document.getElementById('resultArea').innerHTML = "";
                 document.getElementById('baseUrl').value = "";
                 document.getElementById('scriptUrl').value = "";
                 document.getElementById('coupleName').value = "";
+                document.getElementById('coupleImage').value = "";
                 document.getElementById('btnReset').style.display = 'none';
                 showToast("Semua data di-reset total.", "success");
             }
