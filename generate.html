@@ -48,7 +48,6 @@
 
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--text); }
-        .small-note { font-size: 12px; color: #888; margin-top: -5px; margin-bottom: 10px; display: block; }
         
         input { 
             width: 100%; 
@@ -174,7 +173,7 @@
             border-color: var(--danger);
         }
 
-        /* --- MODAL / POPUP STYLES --- */
+        /* --- MODAL / POPUP GENERAL STYLES --- */
         .modal-overlay {
             display: none; 
             position: fixed;
@@ -199,7 +198,7 @@
         .modal-card {
             background-color: #fff;
             width: 90%;
-            max-width: 500px;
+            max-width: 450px; /* Sedikit lebih kecil untuk konfirmasi */
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             padding: 25px;
@@ -237,39 +236,11 @@
         }
         .btn-close-modal:hover { color: var(--danger); }
 
-        /* Preview Image Style in Modal */
-        .preview-container {
-            width: 100%;
-            height: 150px;
-            background-color: #f0f2f5;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px dashed #ccc;
-        }
-        .preview-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .preview-placeholder {
-            color: #999;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .modal-body .info-group {
-            margin-bottom: 15px;
-        }
-        .modal-body label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .modal-body { font-size: 15px; color: #555; line-height: 1.5; }
+        
+        /* Form khusus di dalam Modal WA */
+        .modal-body .info-group { margin-bottom: 15px; }
+        .modal-body label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
         .modal-body input[type="text"], 
         .modal-body textarea {
             width: 100%;
@@ -279,27 +250,26 @@
             font-family: inherit;
             font-size: 14px;
             background-color: #f9f9f9;
+            box-sizing: border-box;
         }
-        .modal-body textarea {
-            height: 180px; 
-            resize: vertical;
-        }
+        .modal-body textarea { height: 120px; resize: vertical; }
 
         .modal-footer {
-            margin-top: 20px;
+            margin-top: 25px;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
         }
 
         .btn-cancel-modal {
-            background: #eee;
+            background: #f0f0f0;
             color: #555;
             border: none;
             padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
+            transition: 0.2s;
         }
         .btn-cancel-modal:hover { background: #e0e0e0; }
 
@@ -314,8 +284,25 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: 0.2s;
         }
         .btn-send-modal:hover { background: #128C7E; }
+
+        /* Tombol Konfirmasi (Danger Action) */
+        .btn-confirm-action {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-confirm-action:hover { background: #c0392b; }
 
         /* Toast Notification */
         #toast-container {
@@ -358,20 +345,14 @@
 <body>
     <div id="toast-container"></div>
 
-    <!-- Modal Popup WhatsApp -->
+    <!-- 1. Modal WhatsApp -->
     <div id="waModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
                 <h3>Kirim Undangan WhatsApp</h3>
-                <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+                <button class="btn-close-modal" onclick="closeModal('waModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <!-- Preview Gambar -->
-                <div class="preview-container">
-                    <div id="previewPlaceholder" class="preview-placeholder">Tidak ada foto (Link Undangan Akan Muncul)</div>
-                    <img id="modalImagePreview" src="" alt="Foto Pengantin" style="display: none;">
-                </div>
-
                 <div class="info-group">
                     <label>Nama Penerima</label>
                     <input type="text" id="modalName" readonly style="font-weight: 600; color: var(--primary);">
@@ -386,9 +367,28 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-cancel-modal" onclick="closeModal()">Batal</button>
+                <button class="btn-cancel-modal" onclick="closeModal('waModal')">Batal</button>
                 <button class="btn-send-modal" id="btnExecuteSend" onclick="executeSend()">
                     <i class="fab fa-whatsapp"></i> Kirim Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Konfirmasi Kustom (Pengganti Alert/Confirm) -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Konfirmasi</h3>
+                <button class="btn-close-modal" onclick="closeModal('confirmModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel-modal" onclick="closeModal('confirmModal')">Batal</button>
+                <button class="btn-confirm-action" id="btnConfirmYes" onclick="processConfirmAction()">
+                    <i class="fas fa-check"></i> Ya, Lanjutkan
                 </button>
             </div>
         </div>
@@ -398,14 +398,8 @@
         <h2><i class="fas fa-link"></i> Generator Link Undangan</h2>
         
         <div class="form-group">
-            <label>Nama Pengantin :</label>
+            <label>Nama Pengantin (Otomatis tampil di pesan WA):</label>
             <input type="text" id="coupleName" placeholder="Misal: Andi & Siti">
-        </div>
-
-        <div class="form-group">
-            <label>URL Foto Pengantin :</label>
-            <input type="text" id="coupleImage" placeholder="https://.../foto-couple.jpg (Link Langsung Gambar)">
-            <span class="small-note"></span>
         </div>
 
         <div class="form-group">
@@ -422,7 +416,7 @@
             <button onclick="fetchData()" class="btn btn-fetch">
                 <i class="fas fa-plus-circle"></i> Ambil Data Tambahan
             </button>
-            <button onclick="resetAllData()" class="btn btn-reset" id="btnReset" style="display:none;">
+            <button onclick="promptReset()" class="btn btn-reset" id="btnReset" style="display:none;">
                 <i class="fas fa-trash-alt"></i> Reset Semua Data
             </button>
         </div>
@@ -432,7 +426,10 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'invito_tools_v6'; // Update versi
+        const STORAGE_KEY = 'invito_tools_v5'; // Versi update tanpa alert
+
+        // Variabel untuk menyimpan callback konfirmasi
+        let currentConfirmCallback = null;
 
         // --- 1. Inisialisasi ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -498,7 +495,6 @@
             currentStorage.baseUrl = document.getElementById('baseUrl').value;
             currentStorage.scriptUrl = document.getElementById('scriptUrl').value;
             currentStorage.coupleName = document.getElementById('coupleName').value;
-            currentStorage.coupleImage = document.getElementById('coupleImage').value; 
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
 
@@ -530,8 +526,7 @@
                 historyNames: [],
                 baseUrl: "",
                 scriptUrl: "",
-                coupleName: "",
-                coupleImage: ""
+                coupleName: ""
             };
         }
 
@@ -569,7 +564,7 @@
                     `<button onclick="openWaModal(${index})" class="btn-wa"><i class="fab fa-whatsapp"></i> Kirim</button>` : "-";
 
                 const deleteBtn = `
-                    <button onclick="deleteSingleGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list">
+                    <button onclick="promptDeleteGuest(${index})" class="btn-delete-row" title="Hapus tamu ini dari list">
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
@@ -595,33 +590,34 @@
             document.getElementById('btnReset').style.display = 'inline-flex';
         }
 
-        // --- 6. MODAL / POPUP LOGIC ---
+        // --- 6. LOGIC MODAL WHATSAPP ---
         let currentWaLink = "";
 
         function openWaModal(index) {
             const currentStorage = getStorageObject();
             const item = currentStorage.active[index];
             const baseUrl = currentStorage.baseUrl;
-            const coupleName = currentStorage.coupleName || "Nama Pengantin"; 
-            const coupleImage = currentStorage.coupleImage || "";
+            const coupleName = currentStorage.coupleName || "Nama Pengantin";
 
-            // Data Dasar
             const safeName = item.name.toString();
             let formattedWA = item.wa.toString().trim().replace(/[^0-9]/g, '');
             if(formattedWA.startsWith('0')) formattedWA = '62' + formattedWA.substring(1);
 
             const link = `${baseUrl}?to=${encodeURIComponent(safeName)}`;
             
-            // --- TEMPLATE PESAN WA (LOGIKA OG IMAGE) ---
-            // Jika ada coupleImage, kita letakkan di akhir pesan agar WA membaca link gambar sebagai preview.
-            
-            let pesan = `Assalamualaikum Warahmatullahi Wabarakatuh
+            const pesan = `Assalamualaikum Warahmatullahi Wabarakatuh
 
 Kepada Yth,
 Bapak/Ibu/Saudar/i
  ${safeName}
 
 Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i ${safeName} untuk menghadiri acara Resepsi Pernikahan kami.
+
+Info lebih lengkap klik link dibawah ini
+
+ ${link}
+
+Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.
 
 Mohon maaf perihal undangan hanya di bagikan melalui pesan ini.
 
@@ -632,114 +628,108 @@ Kami yang berbahagia
 
 Wassalamualaikum Warahmatullahi Wabarakatuh`;
 
-            if (coupleImage) {
-                // Strategi: Masukkan link Undangan, kemudian link Gambar.
-                // WA biasanya mengambil preview dari link terakhir. Jika link terakhir adalah gambar, preview akan menunjukkan gambar.
-                pesan += `
-
-Link Undangan Digital:
- ${link}
-
-Foto Kami:
- ${coupleImage}`;
-            } else {
-                // Jika tidak ada gambar, gunakan link undangan biasa
-                pesan += `
-
-Info lebih lengkap klik link dibawah ini:
- ${link}`;
-            }
-
-            // Link WhatsApp Final
             currentWaLink = `https://wa.me/${formattedWA}?text=${encodeURIComponent(pesan)}`;
 
-            // Isi Data ke Modal
             document.getElementById('modalName').value = safeName;
             document.getElementById('modalPhone').value = formattedWA;
             document.getElementById('modalMessage').value = pesan;
 
-            // Handle Image Preview di Modal
-            const imgPreview = document.getElementById('modalImagePreview');
-            const imgPlaceholder = document.getElementById('previewPlaceholder');
-            
-            if(coupleImage) {
-                imgPreview.src = coupleImage;
-                imgPreview.style.display = 'block';
-                imgPlaceholder.style.display = 'none';
-            } else {
-                imgPreview.style.display = 'none';
-                imgPlaceholder.style.display = 'block';
-            }
-
-            // Tampilkan Modal
-            const modal = document.getElementById('waModal');
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('waModal');
-            modal.classList.remove('active');
-            currentWaLink = "";
+            openModal('waModal');
         }
 
         function executeSend() {
             if(currentWaLink) {
                 window.open(currentWaLink, '_blank');
-                closeModal();
+                closeModal('waModal');
             }
+        }
+
+        // --- 7. SISTEM KONFIRMASI KUSTOM (PENGGANTI ALERT/CONFIRM) ---
+
+        // Fungsi umum untuk membuka modal konfirmasi
+        function showCustomConfirm(title, message, onConfirm) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            currentConfirmCallback = onConfirm;
+            openModal('confirmModal');
+        }
+
+        // Menjalankan aksi jika user klik "Ya"
+        function processConfirmAction() {
+            if (currentConfirmCallback) {
+                currentConfirmCallback();
+            }
+            closeModal('confirmModal');
+            currentConfirmCallback = null;
+        }
+
+        // Wrapper untuk Hapus Tamu
+        function promptDeleteGuest(index) {
+            showCustomConfirm(
+                "Hapus Tamu", 
+                "Apakah Anda yakin ingin menghapus data tamu ini dari daftar?", 
+                () => {
+                    // Logika penghapusan ada di sini (callback)
+                    const currentStorage = getStorageObject();
+                    const removedItem = currentStorage.active.splice(index, 1)[0];
+                    
+                    if(removedItem && removedItem.name) {
+                        // Opsional: Masukkan ke history agar tidak di-fetch lagi jika diinginkan
+                        // currentStorage.historyNames.push(removedItem.name); 
+                    }
+
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
+                    renderTable(currentStorage.active, currentStorage.baseUrl);
+                    showToast("Tamu berhasil dihapus.", "success");
+                }
+            );
+        }
+
+        // Wrapper untuk Reset Semua Data
+        function promptReset() {
+            showCustomConfirm( 
+                ". Lanjutkan?", 
+                () => {
+                    localStorage.removeItem(STORAGE_KEY);
+                    document.getElementById('resultArea').innerHTML = "";
+                    document.getElementById('baseUrl').value = "";
+                    document.getElementById('scriptUrl').value = "";
+                    document.getElementById('coupleName').value = "";
+                    document.getElementById('btnReset').style.display = 'none';
+                    showToast("Semua data berhasil di-reset.", "success");
+                }
+            );
+        }
+
+        // --- 8. Helper Modal Umum ---
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
 
         // Tutup modal jika klik di luar area kartu
         window.onclick = function(event) {
-            const modal = document.getElementById('waModal');
-            if (event.target == modal) {
-                closeModal();
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('active');
             }
         }
 
-        // --- 7. Hapus SATU Tamu ---
-        function deleteSingleGuest(index) {
-            if(!confirm("Hapus tamu ini dari daftar?")) return;
-
-            const currentStorage = getStorageObject();
-            const removedItem = currentStorage.active.splice(index, 1)[0];
-            
-            if(removedItem && removedItem.name && !currentStorage.historyNames.includes(removedItem.name)) {
-                currentStorage.historyNames.push(removedItem.name);
-            }
-
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStorage));
-            renderTable(currentStorage.active, currentStorage.baseUrl);
-            showToast("Tamu dihapus dari list.", "success");
-        }
-
-        // --- 8. Load & Reset ---
+        // --- 9. Load & Reset ---
         function loadFromStorage() {
             const currentStorage = getStorageObject();
             document.getElementById('baseUrl').value = currentStorage.baseUrl || '';
             document.getElementById('scriptUrl').value = currentStorage.scriptUrl || '';
             document.getElementById('coupleName').value = currentStorage.coupleName || '';
-            document.getElementById('coupleImage').value = currentStorage.coupleImage || ''; 
             
             if(currentStorage.active && currentStorage.active.length > 0) {
                 renderTable(currentStorage.active, currentStorage.baseUrl);
             }
         }
 
-        function resetAllData() {
-            if(confirm("lanjutkan?")) {
-                localStorage.removeItem(STORAGE_KEY);
-                document.getElementById('resultArea').innerHTML = "";
-                document.getElementById('baseUrl').value = "";
-                document.getElementById('scriptUrl').value = "";
-                document.getElementById('coupleName').value = "";
-                document.getElementById('coupleImage').value = "";
-                document.getElementById('btnReset').style.display = 'none';
-                showToast("Semua data di-reset total.", "success");
-            }
-        }
-
-        // --- 9. Helper Toast ---
+        // --- 10. Helper Toast ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
