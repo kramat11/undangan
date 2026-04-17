@@ -687,8 +687,9 @@ Wassalamualaikum Warahmatullahi Wabarakatuh`;
 
         // Wrapper untuk Reset Semua Data
         function promptReset() {
-            showCustomConfirm( 
-                ". Lanjutkan?", 
+            showCustomConfirm(
+                "Reset ", 
+                "PERINGATAN: Semua data tamu dan pengaturan akan dihapus permanen. Lanjutkan?", 
                 () => {
                     localStorage.removeItem(STORAGE_KEY);
                     document.getElementById('resultArea').innerHTML = "";
