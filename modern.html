@@ -215,6 +215,24 @@
             .timeline-dot { left: 10px !important; }
             .rsvp-container { grid-template-columns: 1fr; }
         }
+        /* --- PERBAIKAN TOMBOL SUPAYA PAS TENGAH --- */
+        
+        /* 1. Atur agar container cover-content menyejajarkan semua isinya ke tengah */
+        .cover-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Ini yang membuat tombol & tulisan nempel tengah */
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+        
+        /* 2. Paksa tombol berada di tengah dengan margin auto */
+        .btn-open {
+            /* (Jangan hapus style yang sudah ada, tambahkan yang ini saja) */
+            margin: 20px auto 0; 
+            display: inline-flex; /* Agar ikon dan teks tetap rapi dalam tombol */
+        }
     </style>
 </head>
 </head>
